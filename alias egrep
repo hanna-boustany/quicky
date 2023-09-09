@@ -1,0 +1,45 @@
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias l='ls -CF'
+alias la='ls -A'
+alias ll='ls -alF'
+alias ls='ls --color=auto'
+
+alias kww='kubectl config get-contexts'
+alias kw='kubectl config view | grep namespace:'
+alias kge="k get events --sort-by='.metadata.creationTimestamp' |tail -8"
+
+alias k=kubectl
+alias kn='k config set-context --current --namespace'
+alias kcc='k config get-contexts'
+alias kd='k --force --grace-period=0 delete po'
+alias ka='k get all'
+alias kaa='k get all -A'
+alias kcf='k create -f'
+
+  
+. <(kubectl completion bash)
+complete -F __start_kubectl k
+export do='-o yaml --dry-run=client'
+alias kre='k replace --force --grace-period=0 -f'
+
+##
+export nks=‘-n kube-system’
+export do=’ --dry-run=client -o yaml’
+export now=’ --force --grace-period=0’
+export rb=‘rolebinding’
+export crb=‘clusterrolebinding’
+
+alias krf=‘k replace --force -f’
+alias krpf=‘k replace $now -f’
+alias kcf=‘k create -f’
+krp() { kubectl run $1 --image=$2 $do;}
+kcd() { kubectl create deploy $1 --image=$2 $do;}
+
+alias kdel=‘k delete’
+alias ke=‘k edit’
+alias kdd=‘k describe deploy’
+alias kdp=‘k describe pods’
+alias kdn=‘k describe nodes’
+

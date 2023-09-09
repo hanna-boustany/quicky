@@ -1,0 +1,1160 @@
+cks
+
+sh ./Assessor-CLI.sh -i -rd /var/www/html/ -nts -rp index						// CIS-CAT Pro Assessor tool
+                                                                                    is a traffic scanner for compliance
+then access it via web interface like (PermitRootLogin no )
+
+***		
+																				// kube-bench download
+curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.4.0/	kube-bench_0.4.0_linux_amd64.tar.gz -o kube-bench_0.4.0_linux_amd64.tar.gz
+tar -xvf kube-bench_0.4.0_linux_amd64.tar.gz									// unpack
+
+ ./kube-bench --config-dir `pwd`/cfg --config `pwd`/cfg/config.yaml 			// install
+
+/etc/kubernetes/manifests/kube-controller-manager.yaml							// correction
+ - --feature-gates=RotateKubeletServerCertificate=true
+
+to check if security best practices are deployed (for etcd , etc)
+****
+
+k describe sa default                                       // to check for token name
+kubectl create token dashboard-sa                           // to create custom token
+kubectl set serviceaccount deploy/web-dashboard dashboard-sa  // to change service account
+
+*******
+
+openssl x509 -in ls /etc/kubernetes/pki/apiserver.crt -text						// to open api server cert
+openssl x509 -in /etc/kubernetes/pki/etcd/server.crt -text						// to open etcd server cert
+openssl x509 -in /etc/kubernetes/pki/ca.crt -text
+
+kubeadm certs check-expiration								//  to check all certs
+*****
+
+crictl ps -a | grep kube-apiserver							// ** to check logs
+crictl logs container-
+crictl logs --tail=2 ebb8267f460ec
+
+****
+
+cat akshay.csr | base64 -w 0                    //  to generate the base64 encoded format 
+kubectl certificate approve agent-smith
+kubectl certificate deny agent-smith
+
+cat myuser.csr | base64 | tr -d "\n"
+k certificate deny agent-smith
+kubectl delete csr agent-smith
+
+*******
+
+k config view           // to check how many clusters are configured and how many users and contexts
+kubectl config current-context --kubeconfig my-kube-config
+
+kubectl config --kubeconfig=/root/my-kube-config current-context
+
+k config view --kubeconfig=my-kube-config 
+k config view --kubeconfig=my-kube-config -o jsonpath='{.contexts[?(@.context.user == "aws-user")].name}'
+
+kubectl config --kubeconfig=/root/my-kube-config use-context research  //****  
+k create rolebinding dev-user-binding --role developer --user dev-user
+
+k create clusterrole michelle --verb=*  --resource=nodes
+k create clusterrolebinding michelle  --clusterrole michelle --user=michelle
+kubectl auth can-i list nodes --as michelle
+*****
+ps -aux | grep kubelet   						// ** to check kublet config location and info
+
+/var/lib/kubelet/config.yaml                    // to check properties and configs
+/etc/kubernetes/kubelet.conf 					// to check cert and context
+// default port : 10250 read-only: 10255
+curl -sk https://localhost:10250/pods			// to call the pods and -sk to bypass ssl
+
+service kubelet status   				// ***
+systemctl enable kubelet   
+service kubelet restart 
+kubectl proxy --port 8002 &				// to run in the background
+apt-get lsof
+lsof -i :8001							// to get pid
+kill pid
+curl -k 127.0.0.1:8001/version 			// to curl version
+
+kubectl port-forward deployments/nginx 8005:80 		// forward from 8005 to 80 ***
+
+sudo journalctl -u kubelet 				// ***
+systemctl start kubelet.service 		// vimp if node not ready
+whereis kubelet
+openssl x509 -in /var/lib/kubelet/worker-1.crt -text // to check crt ca issuer
+systemctl daemon-reload 
+***
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl proxy --address=0.0.0.0 --disable-filter & 		// to allow access from anywhere ***
+
+append to url
+/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login  // to login **
+k get secrets -n kubernetes-dashboard admin-user -o go-template="{{.data.token | base64decode}}" // token **
+
+k create clusterrolebinding readonly-user-binding --serviceaccount kubernetes-dashboard:readonly-user --clusterrole=view					   // clusterrolebinding example *
+
+****
+curl api.ipify.org   					// curl to check realip
+/tool fetch output=user url=https://ipinfo.co.za  // curl realip from mikrotik 
+ip neighbor pr  where identity ~"joe"              // curl
+
+***
+wget -O /opt/kubernetes.tar.gz https://dl.k8s.io/v1.26.0/kubernetes.tar.gz 	// to download binaries to opt
+shasum -a512 /opt/kubernetes.tar.gz				  // to check sha hash of binaries downloaded
+***
+**
+kubeadm upgrade plan						      // to check what is latest version
+k drain controlplane --ignore-daemonsets
+k describe nodes | grep -i taint
+
+ apt-mark unhold kubeadm && \
+ apt-get update && apt-get install -y kubeadm=1.26.0-00 && \
+ apt-mark hold kubeadm
+
+sudo kubeadm upgrade apply v1.26.0
+kubeadm version
+
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.26.0-00 kubectl=1.26.0-00 && \
+apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+k uncordon controlplane 
+k taint node controlplane node.kubernetes.io/not-ready:NoSchedule-
+
+k drain node01 --ignore-daemonsets
+ apt-mark unhold kubeadm && \
+ apt-get update && apt-get install -y kubeadm=1.26.0-00 && \
+ apt-mark hold kubeadm
+ sudo kubeadm upgrade node
+ kubeadm version
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.26.0-00 kubectl=1.26.0-00 && \
+apt-mark hold kubelet kubectl
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+k uncordon node01 
+****
+***
+
+netpol make sure of identation
+  - to:
+    - podSelector:
+        matchLabels:
+          name: mysql
+    ports:
+    - protocol: TCP
+      port: 3306
+****
+kubectl create ingress ingress-test --rule="wear.my-online-store.com/wear*=wear-service:80"
+
+k create ingress ingress-wear-watch --rule="/watch*=video-service:8080"   --rule="/wear*=wear-service:8080"  --dry-run=client --annotation nginx.ingress.kubernetes.io/rewrite-target=/  -oyaml
+
+***
+dockerd --debug                 //      to debug from docker daemon in /var/run/docker.sock
+dockerd                         // in case docker daemon did not autostart on boot
+--host=tcp://192.xxx..x.x:2375  // to allow external access to docker engine
+port 2376 if tls enabled
+/etc/docker/daemon.json         // to configure daemon
+***
+
+id                              // details about current user like uid gid and group
+who                             // list users currently logged in
+last                            // show last logins
+
+/etc/passwd                     // store usernames uid gid home dir
+/etc/shadow                     // store password hashed
+/etc/group                      // store groups infos
+passwd david                    // to set a new pass for user david
+userdel dav
+groupdel devs
+usermod -s /usr/sbin/nologin himanshi   // to disable login to himanshi  **
+useradd -d /opt/sam -s /bin/bash -G admin -u 2328 sam      // *** -d for home dir 
+/etc/sudoers                    // to see who has sudo and what privileges          ***
+jim ALL=(ALL:ALL) ALL           // to add jim to sudoers                            ***
+jim ALL=(ALL) NOPASSWD:ALL      // to run as sudoer without pass
+usermod rob -G admin            // make rob part of group admin                     ***
+%admin ALL=(ALL) ALL            // host add % before admin group related entry      ***
+                                // % character is used to indicate a group name, rather than an individual  user name
+
+
+grep -I ^root /etc/passwd
+^root is a regular expression pattern that matches lines beginning with the string "root"
+ssh-i                           // to pass the private key on login
+ssh-copy-id -i ~/.ssh/id_rsa.pub jim@node01         //  from host to add the ssh account
+****
+
+apt list --installed                                // *** list installed packages
+systemctl list-units --type service                 // *** stop unwanted services
+systemctl stop apache2
+systemctl disable apache2
+apt remove apache2
+rm /lib/systemd/system/nginx.service                // ** to only remove service ***
+
+find / -name *.crt | grep -i "kube"                 // *******
+
+modprobe pcspkr                                     // add speaker module to kernel modules
+lsmod                                               // *** list kernel modules
+cat /etc/modprobe.d/xxx.conf                        // *** blacklist sctp to do the blacklist
+shutdown -r now
+lsmod | grep sctp
+*****
+
+netstat -an | grep -w LISTEN                        // *** TO CHECK FOR LISTENNING PORTS
+cat /etc/services | grep 53                         // ** to check which services is on port 53
+
+netstat -an | grep 22 | grep -w LISTEN
+netstat -antp | grep 9090
+
+ufw status numbered                                 // ***
+ufw allow 1000:2000/tcp                             // *** to allow tcp range
+ufw reset
+ufw allow 22
+ufw allow from 135.22.65.0/24 to any port 9090 proto tcp  // *** Add ufw rules to allow incoming connection on  
+
+                                                          // ports from IP range 135.22.65.0/24 to any interface on node selected
+ufw enable
+ufw deny 8001                                             // *** deny port  
+****
+
+which strace
+strace touch /tmp/error.log                               // to trace syscalls of touch command
+env | wc -l
+
+pid of etcd                                        // check pid of etcd to strace it
+strace -p 1234
+strace -c ls /root
+****
+***
+
+tracee --trace com=ls                              // select the ls command
+
+tracee --trace pid=new                             // to select only new pid's
+tracee --trace container=new                       // 
+***
+
+ps -ef                                             // inspect process id *** to check its seccomp
+grep Seccomp /proc/1/status                        // where 1 is the pid    
+
+grep syscall /var/log/syslog                       // in k8s
+          // check mapped syscalls 
+/var/lib/kubelet/seccomp                           // default location
+      localhostProfile: profiles/fine-grained.json
+***
+/// apparmor
+
+systemctl status apparmor                          // installed by default
+cat /sys/module/apparmor/parameters/enabled        // Y to check if installed
+
+aa-status                                          // ***
+apparmor_parser /etc/apparmor.d/usr.sbin.nginx     // to load apparmor profile
+
+getcap /usr/bin/ping                               // to check ping capabilities
+ps -ef | grep ping                                 // to get pid
+getcaps 3242
+
+****
+
+kubectl exec ubuntu-sleeper -- whoami              // to check user used to exec the args
+
+
+kubectl exec -it kube-apiserver-controlplane -n kube-system -- kube-apiserver -h | grep 'enable-admission-plugins'
+                                                    // *** check admission controller enabled by default
+
+grep enable-admission-plugins /etc/kubernetes/manifests/kube-apiserver.yaml
+                                                    // *** check Which admission controller is enabled in this cluster which is normally disabled
+
+
+- --enable-admission-plugins=NodeRestriction,NamespaceAutoProvision         
+                                                    // to enable NamespaceAutoProvision admission controller on   kube-apiserver                                                            
+- --disable-admission-plugins=DefaultStorageClass  
+                                                    // *** add DefaultStorageClass added todisable-admission-plugins in server
+
+ps -ef | grep kube-apiserver | grep admission-plugins 
+                                                    // *** kube-apiserver is running as pod you can check the process to see enabled and disabled plugins
+****
+**
+kubectl -n webhook-demo create secret tls webhook-server-tls \   // *** tls secret example
+    --cert "/root/keys/webhook-server-tls.crt" \
+    --key "/root/keys/webhook-server-tls.key"
+
+k get po pod-name -o yaml | grep -A2 " securityContext:"          // *** check securityContext for a pod
+****
+
+curl -X PUT --data-binary @sample.rego http://localhost:8181/v1/policies/samplepolicy
+                                                        // ** Load policy /root/sample.rego to OPA with the name samplepolicy
+
+Kube-mgmt is a tool that manages instances of the Open Policy Agent (OPA) on top of Kubernetes123. It can be used to load policies into OPA via Kubernetes and replicate Kubernetes resources, including CustomResourceDefinitions.
+The tool is available on GitHub and is used as a sidecar for managing OPA
+
+To enable Kube-mgmt to auto identify policies in k8s and load them into opa we should create configmaps on kuberntes with label openpolicyagent.org/policy set to rego      // ****
+
+package kubernetes.admission
+deny[msg] {
+  input.request.kind.kind == "Pod"
+  image := input.request.object.spec.containers[_].image
+  not startswith(image, "hooli.com/")
+  msg := sprintf("image '%v' comes from untrusted registry", [image])}
+                                                        // *** to deny pods with images no beginning by hooli
+
+k create configmap --from-file /root/untrusted-registry.rego untrusted-registry  
+                                                        // **** Create a configmap for OPA using the untrusted-registry.rego policy file
+
+package kubernetes.admission
+import data.kubernetes.ingresses
+deny[msg] {
+    some other_ns, other_ingress
+    input.request.kind.kind == "Ingress"
+    input.request.operation == "CREATE"
+    host := input.request.object.spec.rules[_].host
+    ingress := ingresses[other_ns][other_ingress]
+    other_ns != input.request.namespace
+    ingress.spec.rules[_].host == host
+    msg := sprintf("invalid ingress host %q (conflicts with %v/%v)", [host, other_ns, other_ingress])}
+                            // *** deny multiple ingress resources with same host 
+*****
+
+k create secret generic db-secret --from-literal DB_Host=sql01 \
+> --from-literal DB_User=root \
+> --from-literal DB_Password=password123
+                                              //  *****secret/db-secret created
+
+
+k explain pods.spec.containers.envFrom          // ***** to invoke secret
+****
+
+ps -aux | grep -i "kube"
+
+grep -vi is a command used in Unix/Linux systems to search for a specific string in a file while ignoring the case of the letters. The -v option is used to invert the search, meaning that it will display all lines that do not contain the specified string. For example, the command grep -vi "apple" fruits.txt will display all lines in the file "fruits.txt" that do not contain the word "apple".
+
+kubectl describe runtimeclasses gvisor  | grep Handler  // *** get the handler of gvisor runtime
+kubectl describe runtimeclasses kata-containers | grep Handler
+
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+    name: secure-runtime
+handler: runsc
+***
+
+k explain deployment.spec.template.spec.imagePullSecrets
+
+*****
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+- name: ImagePolicyWebhook
+  configuration:
+    imagePolicy:
+      kubeConfigFile: <PATH_TO_KUBECONFIG>
+      allowTTL: 50
+      denyTTL: 50
+      retryBackoff: 500
+      defaultAllow: false
+
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    certificate-authority: /etc/kubernetes/pki/server.crt
+    server: https://image-bouncer-webhook:<NODE_PORT>/image_policy
+  name: bouncer_webhook
+contexts:
+- context:
+    cluster: bouncer_webhook
+    user: api-server
+  name: bouncer_validator
+current-context: bouncer_validator
+preferences: {}
+users:
+- name: api-server
+  user:
+    client-certificate: /etc/kubernetes/pki/apiserver.crt
+    client-key:  /etc/kubernetes/pki/apiserver.key
+
+k get svc
+image-bouncer-webhook   NodePort    10.108.80.244   <none>        443:30080/TCP   4m
+so ==> server: https://image-bouncer-webhook:30080/image_policy
+
+vi /etc/kubernetes/manifests/kube-apiserver.yaml 
+
+ - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+ - --admission-control-config-file=/etc/kubernetes/pki/admission_configuration.yaml
+******
+
+// kubesec ***
+
+wget https://github.com/controlplaneio/kubesec/releases/download/v2.11.0/kubesec_linux_amd64.tar.gz
+
+tar -xvf  kubesec_linux_amd64.tar.gz
+
+mv kubesec /usr/bin/
+
+kubesec -h                                  // ** yaml and json supported
+
+kubesec scan /root/node.yaml > /root/kubesec_report.json
+****
+// trivy
+// reduce the attack surface used stripped down packages
+
+trivy -v
+trivy -h
+
+crictl pull python:3.10.0a4-alpine                                          // instead of docker  ******* ***
+trivy image --output /root/python_alpine.txt python:3.10.0a4-alpine         //  *** save the output to txt
+
+trivy image --severity CRITICAL 
+
+trivy image --output /root/alpine.json --format json --input /root/alpine.tar // *** imp vimp
+
+******
+****
+// falco  uses sysdig filters 
+
+k get ds -A                                     // ** to check if falco is installed as daemonset
+service falco status                            // ** to check if falco is installed as service
+or systemctl status falco                       // ***
+journalctl -fu falco                            // *** -f to print latest logs live
+
+cat /var/run/falco.pid                          // *** to get pid of falco 
+journalctl -fu falco                            // in other tab to see the startup process  **
+kill -1 pid or
+kill -1 $(cat /var/run/falco.pid)               // *** to kill the falco automatically hot-reload
+
+ vi /etc/falco/falco.yaml                       // ** find _output to check output type
+
+journalctl -u falco.service --priority=critical --output=json > falco.log // *** to cat to a file 
+journalctl -u falco.service --output=text | grep -i error > falco.log     // **
+cat falco.log | grep -i "command"
+
+journalctl -u falco.service  --output=json | jq '' > falco.json         // *** to get in json and formatted
+
+
+journalctl -u falco.service --output=json | jq -r '.MESSAGE | split(" ") | map(select(test("namespace|container_name"))) | map(split("=")) | map({(.[0]): .[1]}) | add' > tfalco.log
+
+
+cat 44.json | jq -r 'if tostring | contains("Source Network Address:") then "\(.1)" else empty end' 
+                                                // *** to check if string is available
+
+
+
+cat events.csv | grep 'Source Network Address' | sed -n 's/.*\t\(.*\)[\r\n]/\1/p' > 33.txt
+grep 'Source Network Address' events.csv | grep -v '\-\s*$' | sed -n 's/.*\t\(.*\)\r/\1/p' > 33.text
+******
+
+spec:
+  containers:
+  - image: httpd
+    name: triton
+    securityContext:
+      readOnlyRootFilesystem: true
+    volumeMounts:
+    - mountPath: /usr/local/apache2/logs
+      name: log-volume
+  volumes:
+  - name: log-volume
+    emptyDir: {}
+******
+
+ResponseComplete generates the events logged *** 
+The RequestResponse level provides the most verbose logs ***
+
+kubeval /etc/kubernetes/manifests/kube-apiserver.yaml               // to check test yaml ****
+
+*****
+
+apparmor_parser -q /etc/apparmor.d/frontend                 // *** to load a profile in apparmor
+aa-status | grep restricted-frontend
+annotations:
+    container.apparmor.security.beta.kubernetes.io/nginx: localhost/restricted-frontend 
+                                                # // Apply profile 'restricted-fronend' on 'nginx' container 
+
+******
+
+kubectl -n orion get secrets a-safe-secret -o jsonpath='{.data.CONNECTOR_PASSWORD}' | base64 --decode >/root/CKS/secrets/CONNECTOR_PASSWORD
+
+volumeMounts: 
+            - name: secret-volume
+              mountPath: /mnt/connector/password
+              readOnly: true
+    volumes:
+    - name: secret-volume
+      secret:
+        secretName: a-safe-secret
+
+****
+
+/var/lib/kubelet/config.yaml
+authorization:
+  mode: Webhook
+protectKernelDefaults: true
+
+*****
+aa-status 
+1- always search for servie account invokes in the pod
+2- search for the sa invoked in the sa's inside the namespace
+3- describe the roles to see which one is the least previleged
+4- apparmor_parser /etc/apparmor.d/frontend
+5- aa-status | grep front                                   // => restricted-frontend
+6-   annotations:
+    # Tell Kubernetes to apply the AppArmor profile "k8s-apparmor-example-deny-write".
+    # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+          container.apparmor.security.beta.kubernetes.io/nginx: localhost/restricted-frontend
+7- sudo apparmor_parser -R /etc/apparmor.d/myprofile
+****
+1- edit po to check secret 
+2- kget secrets 
+3- https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-kubectl/
+4- kubectl get secret db-user-pass -o jsonpath='{.data}'
+5- echo "bjBPbjNDQG5IQGNrTTM=" | base64 --decode
+    volumeMounts:
+    - name: foo
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: foo
+    secret:
+      secretName: mysecret
+      optional: true
+
+****
+trivy
+
+kubectl get pods --output=custom-columns="NAME:.metadata.name,IMAGE:.spec.containers[*].image"
+trivy image --severity CRITICAL kodekloud/webapp-delayed-start
+
+*******
+mkdir ./profiles
+mv /root/CKS/audit.json ./profiles/
+cp audit.json /var/lib/kubelet/seccomp/                     // to activate audit.json seccomp profile
+spec:
+  securityContext:
+    seccompProfile:
+      type: Localhost
+      localhostProfile: profiles/audit.json
+****
+
+journalctl -u falco | grep -i " Error File below a known binary directory opened for writing"  // ***
+vi /etc/falco/falco_rules.yaml
+vi /etc/falco/falco_rules.local.yaml                // to overwrite the falco rules in a something
+
+
+- rule: Write below binary dir
+  desc: an attempt to write to any file below a set of binary directories
+  condition: >
+    bin_dir and evt.dir = < and open_write
+    and not package_mgmt_procs
+    and not exe_running_docker_save
+    and not python_running_get_pip
+    and not python_running_ms_oms
+    and not user_known_write_below_binary_dir_activities
+  output: >
+    File below a known binary directory opened for writing (user=%user.name file_updated=%fd.name command=%proc.cmdline)
+  priority: ERROR  tags: [filesystem, mitre_persistence]
+
+service falco restart
+****
+
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+  - name: ImagePolicyWebhook
+    configuration:
+      imagePolicy:
+        kubeConfigFile: etc/admission-controllers/admission-kubeconfig.yaml
+        allowTTL: 50
+        denyTTL: 50
+        retryBackoff: 500
+        defaultAllow: false
+
+
+vi /etc/kubernetes/manifest/kube-apiserver 
+    - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+    - mountPath: /etc/admission-controllers
+      name: admission-controllers
+      readOnly: true
+- hostPath:
+    path: /root/CKS/ImagePolicy/
+    type: DirectoryOrCreate
+  name: admission-controllers
+
+crictl ps -a | grep -i kube
+
+******
+kubectl run -it --rm --restart=Never test-pod --image=busybox -- /bin/sh                // *** for testing
+kubectl run -it --rm --restart=Never test-pod --image=busybox  -l backend=prod-x12cs -- /bin/sh 
+
+ping my-service.my-namespace.svc.cluster.local
+telnet my-service.my-namespace.svc.cluster.local <port>
+
+telnet redis-backend.prod-x12cs.svc.cluster.local 6379
+or                                                              // ****** ****** 
+
+nc -vz redis-backend.apps-xyz.svc.cluster.local 6379
+nc -vz redis-backend.prod-x12cs.svc.cluster.local 6379
+
+kubectl exec test-pod -- curl http://<service-ip>:<service-port>
+kubectl exec test-pod -- curl http://<restricted-service-ip>:<restricted-service-port>
+
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              access: redis
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              function: redis-backend
+          podSelector:                              // ** no - before the podSelector to have 2conditions at once
+            matchLabels:
+              backend: prod-x12cs
+    ports:
+        - protocol: TCP
+          port: 6379
+***
+  
+
+for namespace label use run: <namespace name>       //  ********
+  automountServiceAccountToken: false      //  to unmount token from /var/run/secrets/kubernetes.io/serviceaccount
+                                           //  inside the pod
+*****
+falco --list=syscall
+
+find /etc/falco/ -name falco* -exec grep -Hi "A shell was spawned in a container" -C1 {} \; // ***
+ 
+journalctl -u falco.service -f              // *******
+
+kubesec scan /root/CKS/simple-pod.yaml
+
+******
+
+netstat -natulp | grep 8088                                                 // imp ****
+systemctl list-units  -t service --state active | grep -i openlitespeed    // ***** 
+systemctl list-units | grep lshttpd
+systemctl stop lshttpd
+systemctl disable lshttpd
+apt list --installed | grep openlitespeed
+apt remove openlitespeed -y
+
+
+****
+vi /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+vi /var/lib/kubelet/config.yaml
+
+systemctl daemon-reload
+systemctl restart kubelet.service
+
+authorization:                                  // **
+  mode: Webhook
+
+protectKernelDefaults: true                     // **
+
+*****
+
+rules:
+  - level: Metadata
+    resources:
+    - group: ""
+      resources: ["secrets"]
+      verbs: ["delete"]
+      **
+edit kubeapi-server
+
+ - --audit-policy-file=/etc/kubernetes/prod-audit.yaml
+ - --audit-log-path=/var/log/prod-secrets.log
+ - --audit-log-maxage=30
+  
+  - name: audit
+    hostPath:
+      path: /etc/kubernetes/prod-audit.yaml
+      type: File
+  - name: audit-log
+    hostPath:
+      path: /var/log/prod-secrets.log
+      type: FileOrCreate
+vol
+  - mountPath: /etc/kubernetes/prod-audit.yaml
+    name: audit
+    readOnly: true
+  - mountPath: /var/log/prod-secrets.log
+    name: audit-log
+    readOnly: false
+*****
+the Rego configuration map for OPA is in untrusted-registry under opa namespace.
+
+ data:
+    untrusted-registry.rego: |2
+      package kubernetes.admission
+      deny[msg] {
+        input.request.kind.kind == "Pod"
+        image := input.request.object.spec.containers[_].image
+        not startswith(image, "kodekloud.io/")
+        msg := sprintf("image '%v' comes from untrusted registry", [image])
+      }
+
+******
+ - --enable-admission-plugins=NodeRestriction,ImagePolicyWebhook
+ - --admission-control-config-file=/etc/kubernetes/pki/admission_configuration.yaml
+
+******
+
+Pod solaris is immutable as it have readOnlyRootFilesystem: true so it should not be deleted.   // ****
+
+Pod sonata is running with privileged: true and triton doesn't define readOnlyRootFilesystem: true so both break the concept of immutability and should be deleted.
+*****
+
+kubectl get pods --output=custom-columns="NAME:.metadata.name,IMAGE:.spec.containers[*].image,NS:.metadata.namespace" -A   // ***
+
+******
+    podSelector:
+      matchExpressions:
+      - {key: role, operator: In, values: [db, cache]}     // *** any pod with the role label set to db or cache
+
+{} in the podSelector field means "select all pods in the namespace" // ****
+
+[] in the ipBlock field means "block traffic from all IP addresses" // ***
+    - ipBlock:
+        cidr: []
+******
+
+    securityContext:
+      runAsUser: 0  # Run the container as root
+    startupProbe:
+      exec:
+        command: ["sh", "-c", "rm -f /bin/sh; rm -f /bin/ash"]
+      initialDelaySeconds: 5
+      periodSeconds: 5
+
+docker build -t kodekloud/webapp-color:stable .
+
+*****
+
+ps -ef | grep etcd                              //  *****   check etcd probably needs reload daemon
+chown etcd:etcd /var/lib/etcd
+protectKernelDefaults: true
+******
+
+cat /etc/*release*                      // ** to check operating system
+vi /etc/falco/falco.yaml
+?events.t                                // to set output file to true
+?syslog                                  // to check if enabled
+
+
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: Metadata
+  namespaces:
+          - "omega"
+          - "citadel"
+          - "eden-prime"
+  resources:
+      - group: "" # core API group
+        resources:
+                - "configmaps"
+                - "pods"
+omitStages:
+  - "RequestReceived"
+***
+
+watch -n 0.5 crictl ps                           // ** to refresh every 0.5s
+systemctl restart kubelet                        // in order to force restart kube-apiserver
+crictl ps -a | grep 74cd5eb16d27
+crictl pods | grep 13ecdde45c8                  // to identify pods names next to each other ****
+
+cat /var/log/kubernetes/audit/audit.log | grep -i citadel | egrep -v 'get|watch|list|config' | jq  // *******
+
+***
+
+
+k get po -A --watch                 // ***
+k get cm -A --watch                 // ****
+
+for i in $(docker images | awk ' /nginx/' {print $1 ":" $2} | sort -u) ; do echo $i ; trivy --severity CRITICAL | grep Total ; done
+
+//      The -u option for sort stands for --unique, which sorts the lines and removes duplicates. This is useful in case there are multiple images with the same name and tag, so we only scan each unique combination of image name and tag.
+    Total is a keyword that appears in the output of trivy command, specifically in the summary of detected vulnerabilities. The grep Total command filters the output of trivy to only show the summary line containing the total number of vulnerabilities found with severity level "CRITICAL". This is helpful to quickly identify if any critical vulnerabilities have been detected in the scanned image.
+
+
+ cat /etc/apparmor.d/usr.sbin.nginx | head
+
+
+startup probe is a type of liveness probe that delay the start of the cont until the cond is met 
+liveness check if the container is still running
+startupProbe:
+    exec:
+      command:
+      - '/bin/sh'
+      - '-c'
+      - 'rm /bin/sh /bin/ash'
+
+***
+
+kube-bench to detect vulnerabilities, falco to log errors, kubesec to scan yamls, apparmor to do restricted profiles  
+trivy image --severity CRITICAL to check image vulnerabilities 
+Seccomp can be used to restrict the system calls 
+
+ps -ef | grep etcd              // ****  to check etcd server ports
+
+
+***  to troubleshoot kube-apiserver
+
+cd /var/log/pods/
+/var/log/pods
+/var/log/containers
+ls -ld *apiserver
+then cat the latest one                                 // ****** **** imp
+
+
+
+netstat -nlp | grep -i etcd
+crictl logs container-id
+
+*****
+We can contact the Apiserver as the Kubelet by using the Kubelet kubeconfig on node01
+
+export KUBECONFIG=/etc/kubernetes/kubelet.conf          // to test the config *** on node01
+k get nodes
+- --enable-admission-plugins=NodeRestriction            // to disable change from node01 ***
+k label nodes --overwrite                               // to test the rule ***
+
+******
+On node01 we can run crictl ps .
+Then crictl inspect CONTAINER-ID | grep apparmor
+
+template:
+    metadata:
+      labels:
+        app: spacecow
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/httpd: localhost/docker-default   ***
+
+put it annotations 2 time one above and another under template
+
+scp profile node01:/root/profile
+
+*********   docker and podman example 01 02
+
+FROM ubuntu:20.04
+RUN apt-get update && apt-get -y install curl
+ENV URL https://google.com/this-will-fail?secret-token=
+RUN rm /usr/bin/bash
+CMD ["sh", "-c", "curl --head $URL$TOKEN"]
+
+podman build -t app .
+podman run -d -e TOKEN=2e064aad-3a90-4cde-ad86-16fad1f8943e app sleep 1d # run in background
+podman ps | grep app
+podman exec -it 4a848daec2e2 bash # fails
+podman exec -it 4a848daec2e2 sh # works
+
+***
+Build an image named base-image from the Dockerfile.
+Run a container named c1 from that image.
+Check under which user the sleep process is running inside the container
+
+cd /opt/ks/
+docker build -t base-image .
+docker run --name c1 -d base-image
+docker exec c1 ps
+docker rm c1 --force
+
+Modify the Dockerfile /opt/ks/Dockerfile to run processes as user appuser
+FROM alpine:3.12.3
+RUN adduser -D -g '' appuser
+USER appuser
+CMD sh -c 'sleep 1d'
+docker rm c2 --force
+*************
+
+check OPA
+docker run --name app1 -d nginx:alpine sleep infinity                   // **** command sleep affinity
+docker exec app1 ps aux                                         // display all running process ****
+docker run ubuntu:latest echo "Hello, world!"
+
+docker run --name app2 --pid=container:app1 -d nginx:alpine sleep infinity  // *** app1 & app2 same PID 
+                                                                            // kernel   namespace **
+podman run --name app1 -d nginx:alpine sleep infinity
+podman exec app1 ps aux
+podman run --name app2 --pid=container:app1 -d nginx:alpine sleep infinity
+podman exec app1 ps aux
+
+*********
+
+cat /var/log/syslog | grep falco
+service falco status
+cat /var/log/syslog | grep falco | grep shell                      // 2 greps means one or the other
+
+grep -ri "shell in"                                 // **** to grep inside files in directory
+
+********
+
+apiVersion: networking.k8s.io/v1                                                // *** check ingressclassname ****
+kind: Ingress
+metadata:
+  name: world
+  namespace: world
+  annotations:
+    # this annotation removes the need for a trailing slash when calling urls
+    # but it is not necessary for solving this scenario
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx # k get ingressclass
+  rules:
+  - host: "world.universe.mine"
+    http:
+      paths:
+      - path: /europe
+        pathType: Prefix
+        backend:
+          service:
+            name: europe
+            port:
+              number: 80
+      - path: /asia
+        pathType: Prefix
+        backend:
+          service:
+            name: asia
+            port:
+              number: 80
+******
+
+ingress tls 
+
+annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"                       // **** imp
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  tls:                            # add
+  - hosts:                        # add
+    - world.universe.mine         # add
+    secretName: ingress-tls       # add
+  rules:
+
+curl -kv https://world.universe.mine:30443/europe
+
+******  netpol
+
+apiVersion: networking.k8s.io/v1     // *** deny all but one do not use the - to only - ports
+kind: NetworkPolicy
+metadata:
+  name: deny-out
+  namespace: app
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: TCP
+    - port: 53
+      protocol: UDP
+
+*********
+
+metadata server test 
+Metadata Server at 1.1.1.1 .
+You can test connection to that IP using // **      nc -v 1.1.1.1 53 
+
+
+***   // allow all but one ip *****
+spec:
+  podSelector:
+    matchLabels:
+      trust: nope
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+********
+*****
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: space1
+  - ports:
+    - port: 53
+      protocol: TCP
+    - port: 53
+      protocol: UDP
+
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: space2
+  - ports:
+    - port: 53
+      protocol: TCP
+    - port: 53
+      protocol: UDP
+*********
+we have privleged and 
+      allowPrivilegeEscalation: false
+
+    name: prime
+    securityContext:
+      privileged: true                          // k exec prime -- iptables -L  ********
+
+******
+RBAC
+
+Role + RoleBinding (available in single Namespace, applied in single Namespace)
+ClusterRole + ClusterRoleBinding (available cluster-wide, applied cluster-wide)
+ClusterRole + RoleBinding (available cluster-wide, applied in single Namespace)
+Role + ClusterRoleBinding (NOT POSSIBLE: available in single Namespace, applied cluster-wide)
+
+
+k -n applications create role smoke --verb create,delete --resource pods,deployments,sts
+k -n applications create rolebinding smoke --role smoke --user smoke
+k get ns # get all namespaces
+k -n applications create rolebinding smoke-view --clusterrole view --user smoke
+k -n default create rolebinding smoke-view --clusterrole view --user smoke
+k -n kube-node-lease create rolebinding smoke-view --clusterrole view --user smoke
+k -n kube-public create rolebinding smoke-view --clusterrole view --user smoke
+
+User smoke should be allowed to create and delete Pods, Deployments and StatefulSets in Namespace applications.
+User smoke should have view permissions (like the permissions of the default ClusterRole named view ) in all Namespaces but not in kube-system .
+
+******runtime
+
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+
+kind: Pod
+metadata:
+  name: sec
+spec:
+  runtimeClassName: gvisor
+  containers:
+
+*****
+
+secret etcd encryption *****
+
+mkdir -p /etc/kubernetes/etcd
+echo -n this-is-very-sec | base64
+
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+    - secrets
+    providers:
+    - aesgcm:
+        keys:
+        - name: key1
+          secret: dGhpcy1pcy12ZXJ5LXNlYw==
+    - identity: {}
+
+1. Add a new volume and volumeMount in /etc/kubernetes/manifests/kube-apiserver.yaml, so that the container can access the file.
+
+2. Pass the new file as argument: --encryption-provider-config=/etc/kubernetes/etcd/ec.yaml
+
+Recreate Secrets so they are encrypted through the new encryption settings.
+
+kubectl -n one get secrets -o json | kubectl replace -f -
+kubectl -n two get secrets -o json | kubectl replace -f -
+kubectl -n three get secrets -o json | kubectl replace -f -
+
+  name: pod1                                            // **** to inject secret in the pod
+spec:
+  volumes:
+  - name: diver
+    secret:
+      secretName: diver
+  containers:
+  - image: nginx
+    name: pod1
+    volumeMounts:
+      - name: diver
+        mountPath: /etc/diver
+    env:
+      - name: HOLY
+        valueFrom:
+          secretKeyRef:
+            name: holy
+            key: creditcard
+*******
+********
+
+File app1-214422c7-Dockerfile uses multiple stages, a larger for building and a smaller for running. so the better is multi staging
+
+
+
+File app3-4049a117-Dockerfile stores the temporarily used token at /tmp/token .
+This is persisted as layer in the container even though the file is later deleted.
+...
+RUN echo $SECRET_TOKEN > /tmp/token   # new layer
+RUN /etc/register.sh /tmp/token       # new layer
+RUN rm /tmp/token                     # new layer
+...
+***********
+
+strace kill -9 1234 2>&1 | grep 1234
+
+grep commands to trace system calls made by the kill command on the process with PID 1234. Here's what each part of the command does:
+
+strace: A command-line tool used to trace system calls and signals made by a program.
+kill: A command used to send signals to processes. In this case, it is used to send the signal -9 (SIGKILL) to the process with PID 1234.
+-9: Specifies the signal to be sent. In this case, it is the SIGKILL signal, which forcefully terminates the process.
+1234: The PID of the process on which the kill command is executed.
+2>&1: Redirects the standard error (stderr) of the strace command to the standard output (stdout). This is done to capture the output of both strace and the traced process.
+|: The pipe symbol, used to redirect the output of one command as input to another command.
+grep 1234: Filters the output of the previous command (strace) and searches for lines containing the text "1234".
+
+*******
+
+netstat -tulpan | grep 1234         //   *** 
+lsof -i :1234
+ls -l /proc/22432/exe   # use your ID instead
+kill 22432 # use your ID instead
+rm /usr/bin/app1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,780 @@
+kubectl run nginx --image nginx --nodeName=node1
+kubectl logs -p webapp -c nginx
+k apply -f newreplica.yaml --overwrite=true
+kubectl scale --replicas=5 rs/new-replica-set
+k replace --force -f --grace-period=0 
+kubectl get pods --selector bu=finance
+k get all -o wide -l env=prod --no-headers | wc -l   (word count)
+k get all -o wide -l "env=prod, bu=finance, tier=frontend"
+k get nodes node01 -o yaml | grep -i "Taint" | awk '{ print $2 }'
+k label node node1 color=blue
+k logs -f podname
+docker ps -a (to see exited containers) 
+k run --image -- -- color green  (to inject an arg)
+k create cm webapp-config-map --from-literal=APP_COLOR=darkblue  (configmaps)
+k create secret generic db-secret --from-literal=DB_host=db1 --from-literal Db_user= root --from-literal Db_pass=pass123
+
+cat /etc/*release*   (to check what operating system)
+kubeadm upgrade plan  (to check versions)
+k describe node | grep Taints
+
+ watch "crictl ps | grep etcd"
+    
+ls /etc/kubernetes/pki  (apiserver.crt) for kube-apiserver
+
+#to check cert issuer and cn etc
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+openssl x509 -in /etc/kubernetes/pki/ca.crt -text -noout
+
+
+ls -l /etc/kubernetes/pki/etcd/server* | grep .crt
+docker ps -a  | grep kube-apiserver  # imp to check for failed kubectl
+docker logs container_id
+
+
+cat akshay.csr | base64 -w 0
+k certificate approve akshay
+k certificate deny agent-smith
+echo $HOME
+k auth can-i list pods --as dev-user
+kubectl create role developer --namespace=default --verb=list,create,delete --resource=pods
+kubectl create rolebinding dev-user-binding --namespace=default --role=developer --user=dev-user
+k get roles -A --no-headers | wc -l
+k create clusterrolebinding michelle-role-binding --clusterrole=michelle --user=michelle
+kubectl set serviceaccount deploy/web-dashboard dashboard-sa
+k create secret docker-registry private-reg-cred / --docker-username=dock_user / --docker-password=dock_password / --docker-server=myprivateregistry.com:5000 --docker-email=dock_user@myprivateregistry.com
+ip  addr show | grep 192
+arp 10.23.1.6
+ip route show default  (if there is a default route)
+netstat -plan | grep etcd  (all)
+netstat -nlp   (listening)
+netstat -natulp | grep etcd | grep LISTEN
+ip route add 
+ip link
+ifconfig -a  (like ip addr show)  like etc/network/interfaces
+ifconfig interfacename
+ps -aux | grep kubelet | grep runtime
+ls /opt/cni/bin
+cat /etc/cni/net.d/10-flannel.conflist
+
+kubectl create ingress ingress-test --rule="wear.my-online-store.com/wear*=wear-service:80"
+k get all -A -o wide   (configmap, role, rolebindings don't appear)
+k expose deploy ingress-contr --name ingress --port= 34 --taget-port=80 --type Nodeport
+cat /etc/hostname
+cat /etc/*release*   (to check what system we're on)
+k config set-context --current --namespace=alpha  (move to other namespace)
+sudo journalctl -u kubelet -f   (last line logs)
+k  get nodes -o jsonpath="{.items[*].metadata.name}" > /opt/outputs/node_names.txt
+k get pv --sort-by=.spec.capacity.storage -o=custom-columns=NAME:.metadata.name,CAPACITY:.spec.capacity.storage
+k config view --kubeconfig=my-kube-config -o jsonpath='{.contexts[?(@.context.user == "aws-user")].name}'
+
+
+kubectl set image deployment/nginx-deploy nginx=nginx:1.17 --record  (--record so we can rolleback)
+
+export ETCDCTL_API=3
+etcdctl -h | grep -A 1 API
+head -n 35 /etc/kubernetes/manifests/etcd.yaml  | grep -A 20 containers
+etcdctl \
+--endpoints=https://10.69.239.9:2379 \
+--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+--cert=/etc/kubernetes/pki/etcd/server.crt \
+--key=/etc/kubernetes/pki/etcd/server.key \
+snapshot save /opt/etcd-backup.db
+
+
+kubectl taint node controlplane node-role.kubernetes.io/control-plane:NoSchedule-
+docker run -d --name busybox02 busybox sleep 3600
+kubectl expose pod messaging --port=6379 --name messaging-service  (clusterip by default)
+
+k logs orange init-mysservice
+
+k run static-busybox --image=busybox --dry-run=client -o yaml --command -- sleep 1000
+static pod location /etc/kubernetes/manifests/
+
+k expose deploy hr-web-app --name=hr-web-app-service --type NodePort --port 8080 then edit to add the nodePort later
+
+k get nodes -o jsonpath='{.items[*].status.nodeInfo.osImage}'
+
+cat /root/CKA/john.csr | base64 | tr -d '\n' | tr -d ' ' > 55.yaml
+
+k auth can-i get pod -n development --as john
+
+k create rolebinding -n development john-rolebinding --role=developer --user=john
+
+k  exec test -- nslookup nginx-resolver-service > /root/CKA/nginx.svc
+k  exec test -- nslookup 10-50-192-1.default.pod.cluster.local > /root/CKA/nginx.pod
+
+k get secret credentials -o yaml | yq r - data.pass.ff > 123.txt
+
+
+k get nodes -o json | jq -c 'path' | grep InternalIP
+
+k run curl --image=alpine/curl --rm -it -- sh
+
+k get pods --show-labels -w   #watch it
+k label pod -l "app in (v6,v63,v3),web in (tier)"  000er=gf7
+
+kubectl label po -l app app-
+k annotate pod -l 'web in (tier)' owner=marketing
+
+kubectl rollout history deploy nginx
+kubectl rollout status deploy nginx
+kubectl rollout undo deploy nginx --to-revision=2
+
+kubectl autoscale deploy nginx --min=5 --max=10 --cpu-percent=80
+# view the horizontalpodautoscalers.autoscaling for nginx
+kubectl get hpa nginx
+
+cat <<EOF >./kustomization.yaml
+configMapGenerator:
+- name: game-config-4
+  files:
+  - configure-pod-container/configmap/game.properties
+EOF
+
+
+
+kubectl patch svc nginx -p '{"spec":{"type":"NodePort"}}' 
+k exec -it busybox -c busybox2 -- cat /etc/foo/passwd
+k cp busybox:/etc/passwd -c busybox2 /root/66343
+k exec -it busybox -c busybox2 -- vi /etc/passwd 
+kubectl run nginx --image=nginx --restart=Never --dry-run=client -o yaml | kubectl create -n mynamespace -f - # to delete yaml file
+
+
+#########
+########
+####
+
+kubectl logs nginx -p #logs of last session after restart
+
+alias kge="k get events --sort-by='.metadata.creationTimestamp' |tail -8"
+
+
+k get nodes --kubeconfig=/root/CKA/super.kubeconfig
+
+kubectl run test-nslookup --image=busybox:1.28 --rm -it --restart=Never -- nslookup nginx-resolver-service1234
+kubectl run test-nslookup --image=busybox:1.28 --rm -it --restart=Never -- nslookup 10-244-192-4.default.pod
+
+### expose
+
+kubectl expose pod nginx-resolver --name=nginx-resolver-service --port=80 --target-port=80 --type=ClusterIP
+
+## we can put --target-port=namePort like http532
+
+
+k get events | less
+k explain pod | less
+k get ns | wc -l
+k delete pod elephant --force --grace-period 0
+ps -aux | grep -i ""
+
+cm       envFrom:
+        - configMapRef:
+            name: special-config
+
+
+k cordon node01 # make the node unschedulable without eviction
+kubeadm version # before upgrading the cluster 
+kubeadm upgrade plan
+k drain controlplane --ignore-daemonsets 
+kubeadm upgrade apply v1.26.0
+
+
+# to restore screenshot method 1
+https://discuss.kubernetes.io/t/etcd-backup-and-restore-management/11019/12
+volumes:
+  - hostPath:
+      path: /var/lib/etcd-from-backup
+      type: DirectoryOrCreate
+    name: etcd-data 
+
+k config use-context cluster2 # inside a node there is 2 clusters
+scp cluster1-controlplane:/opt/cluster1.db /opt/cluster1.db # to copy in to out
+
+## snaphot restore method 2
+
+export ETCDCTL_API=3
+scp /opt/cluster2.db etcd-server:/root/cluster2.db 
+etcd-server ~ ➜  ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.pem --key=/etc/etcd/pki/etcd-key.pem snapshot restore /root/cluster2.db --data-dir /var/lib/etcd-data-new
+
+etcd-server /var/lib ➜  chown -R etcd:etcd /var/lib/etcd-data-new
+vi /etc/systemd/system/etcd.service
+systemctl daemon-reload 
+systemctl restart etcd
+##
+
+k delete csr agent-smith
+
+ls -a #search root directory
+
+# select kubeconfig file 
+kubectl config --kubeconfig=/root/my-kube-config use-context research
+kubectl config --kubeconfig=/root/my-kube-config current-context
+research
+##
+
+vi /root/.kube/config # to edit crt file location
+
+## pull image from local registry 
+k create secret docker-registry private-reg-cred --docker-username=dock_user --docker-password=dock_password --docker-server=myprivateregistry.com:5000 --docker-email=dock_user@myprivateregistry.com
+
+  imagePullSecrets:
+  - name: private-reg-cred
+##
+
+##securityContext
+spec:
+  securityContext:
+    runAsUser: 1001
+  containers:
+  -  image: ubuntu
+     name: web
+     command: ["sleep", "5000"]
+     securityContext:
+      runAsUser: 1002
+
+  -  image: ubuntu
+     name: sidecar
+     command: ["sleep", "5000"]
+##
+
+##network policies
+spec:
+  podSelector:
+    matchLabels:
+      name: app
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        -  podSelector:
+              matchLabels:
+                name: db
+      ports:
+        - protocol: TCP
+          port: 5978
+    - to:
+        -  podSelector:
+##
+
+netstat -anp | grep etcd   #check cnx number
+
+ip route show default
+ip addr show weave
+ip a # like ip link
+
+ls /opt/cni/bin # see available network interfaces
+ls /etc/cni/net.d # used 
+k logs weave-net-rxq  -n kube-system | grep -i "ipalloc-range" #weave pod ip alloc
+k -n kube-system logs kube-proxy-2rggp #to check firewall type
+
+k config set-context --current --namespace=alpha #change to another namespace
+
+k exec -it test -- curl http://web-service.default.svc # or without svc and we can add .cluster.local
+
+##
+controlplane ~ ➜  k exec -it hr -- nslookup mysql.payroll
+Server:         10.96.0.10
+Address:        10.96.0.10#53
+
+Name:   mysql.payroll.svc.cluster.local
+Address: 10.100.156.225
+
+
+## THEN INSTALL NETWORK LIKE FLANNEL FOR THE NODES TO BECOME READY 
+kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.20.2/Documentation/kube-flannel.yml
+
+journalctl -u kubelet -l # to check nodes
+
+/var/lib/kubelet/  ## kubelet config file location
+
+
+### to check cnx to control plane node
+kubectl cluster-info --kubeconfig=/root/CKA/super.kubeconfig 
+
+### to kill the containerd of a pod
+crictl ps 
+crictl kill id
+
+## for loop
+for i in `seq 0 8` ;do k run --image nginx nginx$i -l app=v1; done
+
+
+## public keys are stored here !!
+ls /etc/kubernetes/pki  (apiserver.crt) for kube-apiserver
+
+### logs real location local 
+cat /var/log/pods/
+
+# seems like the kubelet can't even create the apiserver pod/container
+/var/log/pods # nothing
+crictl logs # nothing
+
+# syslogs:
+tail -f /var/log/syslog | grep apiserver
+> Could not process manifest file err="/etc/kubernetes/manifests/kube-apiserver.yaml: couldn't parse as pod(yaml: mapping values are not allowed in this context), please check config file"
+
+# or:
+journalctl -l | grep apiserver
+> Could not process manifest file err="/etc/kubernetes/manifests/
+
+###
+
+## configmap create
+kubectl create cm trauerweide --from-literal tree=trauerweide
+
+## ingress setup
+ ingressClassName: nginx
+k get ingressclass
+curl http://world.universe.mine:30080/europe
+
+## netpol
+k -n default run nginx --image=nginx:1.21.5-alpine --restart=Never -i --rm  -- curl -m 1 microservice1.space2.svc.cluster.local
+
+k -n space1 exec app1-0 -- curl -m 1 microservice1.space2.svc.cluster.local
+
+
+### events
+k get events -A --sort-by='{.metadata.creationTimestamp}'
+
+## change image (nginx is the container name)
+k set image deployment my-first-deployment nginx=httpd:alpine
+
+### secret in pod option1
+spec:
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: dotfile-secret
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: busybox
+    name: secret-admin
+    volumeMounts:
+      - name: secret-volume
+        readOnly: true
+        mountPath: "/etc/secret-volume"
+    resources: {}
+  dnsPolicy: ClusterFirst
+###
+###secret in pod option2
+
+valueFrom:
+  secretKeyRef:
+    name: secret2
+    key: 324
+
+##
+chown -R etcd.etcd /etc/etc-data
+
+
+#####EXAM######
+
+###etcd (exam)
+ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/ca.crt --cert=/etc/etcd/etcd.crt --key=/etc/etcd/etcd.key put course "We are awesome"
+
+systemctl stop etcd
+rm -rf /var/lib/etcd/*
+cd /tmp 
+ 
+ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/ca.crt --cert=/etc/etcd/etcd.crt --key=/etc/etcd/etcd.key snapshot restore firstbackup.db
+
+https://telusgcp.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/18263046#overview
+
+###
+
+## rbac 
+k create clusterrolebinding pipeline-view --clusterrole view --uount ns1:pipeline --serviceaccount ns2:pipeline
+
+k create clusterrole pipeline-deployment-manager --verb create,delete --resource deployments
+k -n ns1 create rolebinding pipeline-deployment-manager --clusterrole pipeline-deployment-manager --serviceaccount ns1:pipeline
+k -n ns2 create rolebinding pipeline-deployment-manager --clusterrole pipeline-deployment-manager --serviceaccount ns2:pipeline
+
+## multipod >> to write many times instead of >
+k run --dry-run=client -o yaml --image busybox c1 -- /bin/sh -c "tail -f /your/vol/path/date.log"  >> 14.yaml 
+
+### node failures
+
+systemctl start kubelet.service ## vimp if node not ready
+service kubelet status   // ***
+systemctl enable kubelet   
+sudo journalctl -u kubelet // ***
+openssl x509 -in /var/lib/kubelet/worker-1.crt -text // to check crt ca issuer
+whereis kubelet
+service kubelet restart 
+
+## install kubeadm and kubelet 
+sudo wget /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+## create controle plan  ip should vary
+kubeadm init --apiserver-advertise-address 10.24.14.12 --apiserver-cert-extra-sans controlplane --pod-network-cidr 10.244.0.0/16
+
+## to add node01 from node01
+kubeadm join 10.24.14.12:6443 --token 3fzgz2.ux7jex456qesz1s0 \
+        --discovery-token-ca-cert-hash sha256:f5e020bb5896201d9ed0193f1724200676c64906ff90c9ae978b3a774a95bfb6 
+###
+##network policies
+spec:
+  podSelector:
+    matchLabels:
+      name: app
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        -  podSelector:
+              matchLabels:
+                name: db
+      ports:
+        - protocol: TCP
+          port: 5978
+    - to:
+        -  podSelector:
+###
+export ETCDCTL_API=3
+scp /opt/cluster2.db etcd-server:/root/cluster2.db 
+etcd-server ~ ➜  ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.pem --key=/etc/etcd/pki/etcd-key.pem snapshot restore /root/cluster2.db --data-dir /var/lib/etcd-data-new
+
+etcd-server /var/lib ➜  chown -R etcd:etcd /var/lib/etcd-data-new
+vi /etc/systemd/system/etcd.service
+systemctl daemon-reload 
+systemctl restart etcd
+###
+# to restore screenshot method 1
+https://discuss.kubernetes.io/t/etcd-backup-and-restore-management/11019/12
+volumes:
+  - hostPath:
+      path: /var/lib/etcd-from-backup
+      type: DirectoryOrCreate
+    name: etcd-data 
+
+k config use-context cluster2 # inside a node there is 2 clusters
+scp cluster1-controlplane:/opt/cluster1.db /opt/cluster1.db # to copy in to out
+
+## snaphot restore method 2
+
+export ETCDCTL_API=3
+scp /opt/cluster2.db etcd-server:/root/cluster2.db 
+etcd-server ~ ➜  ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/pki/ca.pem --cert=/etc/etcd/pki/etcd.pem --key=/etc/etcd/pki/etcd-key.pem snapshot restore /root/cluster2.db --data-dir /var/lib/etcd-data-new
+
+etcd-server /var/lib ➜  chown -R etcd:etcd /var/lib/etcd-data-new
+vi /etc/systemd/system/etcd.service
+systemctl daemon-reload 
+systemctl restart etcd
+##
+
+k delete csr agent-smith
+
+ls -a #search root directory
+
+# select kubeconfig file 
+kubectl config --kubeconfig=/root/my-kube-config use-context research
+kubectl config --kubeconfig=/root/my-kube-config current-context
+research
+##
+##
+kubectl patch svc nginx -p '{"spec":{"type":"NodePort"}}' 
+
+
+#### questions for exam ##
+
+Etcd not installed
+
+Sidecar with volume mount at logs stored local at var/logs already created in other container that has vol and volume mount
+
+Etcdctl + tls local (peer certs) with names and i’m not in correct node then scp and restore  (i don't recall if private ca.key or ca-key.pem or public ca.crt or ca.pem)
+
+Scp from node to node
+
+Ingress at already available pod pot 80 /hi to hi w ma bzon ken fi service named hi bas fi pod
+
+Then nodeport 3ala he serivice zeta w ana bna2e l port w curl 7atina eno internalip plus yemken port 80/hi to return hi
+
+Set to scal capacity with edit or set to 70Gi from 40 and record patch mesh edit of deploy I think
+
+Start kubelet and make it service with systemctl
+
+Nodeselector add mesh nodename
+
+Sudo -i
+
+As2ila last to first
+
+2 container plus tail command in one of them should be vol emptydir:{}
+
+Netpol in b ns that allow pods from a through port 80
+
+Pv w pvc w pod w mesh eylin eza hostpath i think ma ken lezem hotta hostpath
+
+Clusterrole and clusterrolebinding
+
+Security class i think instead of service account or storage i don’t recall
+la2 storage class name in pvc and pod and no specified pv
+desc then grep mounts to check
+
+in top remember --containers 
+in tail vol emptydir:{}
+exec multi container -- env to check env variable 
+tocheck join cluster
+curl to check netpol curl -s 10.43.12.2:1111
+etcd snapshot status before restore 
+to practice cidr change
+####
+
+### kubelet ca.crt locations (not on static pods)
+
+
+inside nodes:
+
+- /etc/kubernetes/pki/ca.crt
+
+- /var/lib/kubelet/pods/da3fe3bc-6ba2-44f5-a89c-b8e615ffbc1f/volumes/kubernetes.io~projected/kube-api-access-4tg2c/ca.crt
+
+- /var/lib/kubelet/pods/da3fe3bc-6ba2-44f5-a89c-b8e615ffbc1f/volumes/kubernetes.io~projected/kube-api-access-4tg2c/..2023_02_03_13_31_58.1521033752/ca.crt
+
+
+inside pod / containers / depl / daemonset(weave-net):
+
+- /run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+######
+
+### .key and .pem (nothing inside pods)
+/var/lib/kubelet/pki/kubelet-client-2023-02-03-09-29-46.pem
+/var/lib/kubelet/pki/kubelet-client-current.pem
+
+####
+
+kube-apiserver is kubernetes.default.svc.cluster.local
+
+####
+find / -name "*.kube" -type d
+docker ps -a 
+docker logs contid
+journalctl -u etcd.service -l for live logs
+curl http://169.254.169.254/metadata/v1/id  (to check droplet id)
+ps -aux | grep -i "kube"
+systemctl enable kubelet   
+systemctl status kubelet    | grep
+whereis kubelet
+k exec -it pod/ubuntu-sleeper -- whoami // root
+always after hostPath put path
+
+### to get 
+
+kubectl proxy to test on port 8001 
+curl -k http://localhost:8001/apis/apps/v1/deployments | grep -i "securi"
+
+k explain pod.spec.containers.resources.limits //View the containter resources limits definition
+kubectl api-resources | grep persistentvolumes
+
+
+### netpol
+
+k get ep
+k get svc -A
+k exec -it internal -- curl -s payroll-service:8080
+
+###
+
+ip link   // to show interfaces and check if link is up **
+ip route   //to show routes  **
+ip route add  192.168.2.0/24 via 192.168.1.4 //
+ip route show default 
+ip addr add 192.168.1.1 dev eth0
+ip netns  // to check namespaces id
+ip -n nsid link // check inside namespace
+docker network ls //
+ifconfig -a // same as cat /etc/network/interfaces
+ifconfig eth0
+netstat -nlp | grep -i "kube" // to check what ports are used ***
+netstat -alp | grep etcd | grep LISTEN // all cnxs **
+arp // to list arp table
+iptables -t nat -A POSTROUTING -s 192.168.0/24 -j MASQUERADE 
+iptables -L -t nat | grep svc
+
+ps -aux | grep -i "kubelet" // inspect process / or service  ***
+hostname // to check dns hosts
+nameserver 192.168.1.100 // in etc/resolv.conf to set dns server
+search  myx.com 123.myx.com         // to search *.myx.com and *.123.myx.com
+
+k logs weave-dfds-     //pods ip addre alloc  *
+
+use instead of "nslookup" "host" // command newer  
+web-service.default.svc.cluster.local // per namespace same name can be used 
+k exec hr -it -- host mysql.payroll >/root/CKA/nslookup.out  // command should finish
+
+env: 
+- name: Db_host
+  value: mysql.payroll  //(call the service) 
+####
+
+#### ingress layer 7
+Format - kubectl create ingress <ingress-name> --rule="host/path=service:port"
+
+Example - kubectl create ingress ingress-test --rule="wear.my-online-store.com/wear*=wear-service:80"
+
+###
+
+curl 10.43.155.197:8080 // 8080 instead of node port to check ext svc
+curl localhost:30081 // to check nodeport
+
+
+##### killer sh 2
+
+## bin/sh and ""  for commands in container
+
+/bin/sh -c "tail -f /your/vol/path/date.log"   **
+
+cidr // cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep range
+    - --service-cluster-ip-range=10.96.0.0/12  // and in kube-controller-manager.yaml
+
+k config view -o jsonpath="{.contexts[*].name}" | tr " " "\n" > /opt/course/1/contexts 
+
+cat ~/.kube/config | grep current | sed -e "s/current-context: //"
+
+
+##
+kubectl port-forward monolith 10080:80 //not for exam to expose port to the internet
+
+kubectl run test-$RANDOM --labels="app=inventory,role=web" --rm -i -t --image=alpine -- sh
+
+/ # nc -v -w 2 db 6379
+db (10.59.242.200:6379) open
+
+###
+k -n project-hamster auth can-i create secret \           ****
+  --as system:serviceaccount:project-hamster:processor    
+yes
+
+###
+env:                                                                          # add
+    - name: MY_NODE_NAME                                                          # add
+      valueFrom:                                                                  # add
+        fieldRef:                                                                 # add
+          fieldPath: spec.nodeName  
+##
+
+k api-resources --namespaced -o name > /opt/course/16/resources.txt
+
+crictl inspect b01edbe6f89ed | grep runtimeType   ***
+
+ssh cluster1-node2 'crictl logs b01edbe6f89ed' &> /opt/course/17/pod-container.log // ****
+
+
+kubeadm certs check-expiration | grep apiserver
+
+kubeadm certs renew apiserver
+
+
+ openssl x509  -noout -text -in /var/lib/kubelet/pki/kubelet.crt | grep Issuer   ///****
+          Issuer: CN = cluster2-node1-ca@158818650
+
+
+TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+➜ curl -k https://kubernetes.default/api/v1/secrets -H "Authorization: Bearer ${TOKEN}"
+
+
+iptables-save | grep p2-service
+
+exec pod -it -c c4 -- env | grep xx   // *** to check environment variables 
+
+
+
+kubeadm token create --print-join-command //****
+
+etcd backup /// ***** find devend in discussion
+
+secret // find secretKeyRef in distribute cred
+
+
+volumes:
+-  name:  xxx           ****
+   emptyDir: {}
+***
+
+for ingress rewite enable
+
+alias kw='kubectl config view | grep namespace:'
+
+
+k edit po pod2 --record    *****
+
+kubectl patch pod <pod-name> -p '{"spec":{"containers":[{"name":"<container-name>","resources":{"requests":{"storage":"70Gi"}}}]}}' --record
+
+
+*****  cks
+
+cat /etc/resolv.conf   // 8.8.8.8    8.8.4.4
+netstat -tuln     // to check listening port after curl
+docker exec -it hassio_supervisor bash   // to open a bash terminal
+curl ifconfig.me    /// to check public ip
+xattr -d com.apple.quarantine /path/to/app.app   // mac to move trusted apps out of quarantine
+
+vi /etc/NetworkManager/NetworkManager.conf  // to set dns to none  home assistant
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf   // to set dns manually
+
+sudo lsof -i :22  // very important to check ports
+ls -la // to list everything
+
+
+*** terraform 
+
+terraform state list
+terraform state show ##one from the list##     // *** to show id 
+terraform show                                 // to show tls keys **  or use it with grep instead of state show
+terraform output                                // print all outputs
+terraform apply creates terraform.tfsate
+terraform init creates .terraform plugins 
+terraform graph | dot -Tsvg > graph.svg        // to print dependencies
+
+
+***  ansible
+
+ansible-galaxy list  , or  init , or install , or search  // **
+ansible-playbook -i inventory 134.yaml
+ansible_connection winrm  // for windows
+
+
+****  aws
+
+aws --endpoint http://aws:4566 iam attach-user-policy --user-name mary --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+
+aws --endpoint http://aws:4566 iam list-attached-group-policies --group-name project-sapphire-developers
+
+ aws --endpoint http://aws:4566 iam add-user-to-group --group-name project-sapphire-developers --user-name jack 
+
+
+
+****  kube 
+
+k logs logger-cka03-arch | grep -Ei 'info|error'   *** grep
+k get secrets beta-sec-cka14-arch -o jsonpath='{.data.secret}' | base64 -d
+kubectl get event --field-selector involvedObject.name=<pod-name>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+

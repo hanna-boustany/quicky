@@ -1,0 +1,512 @@
+linux 
+
+
+sudo yum install -y bind-utils          // to install dig and nslookup  **
+chmod 400 test01-kp.pem
+man mkdir
+whatis mkdir
+apropos modpr
+echo $HOME
+showmount -e 172.16.238.101
+which awscli
+env
+echo $PATH                   // or any env variable
+find / -name "*.kube" -type d
+export PATH=$PATH:/opt/obs/bin
+which obs 
+echo 'export PROJECT=MERCURY' >> /home/bob/.profile   // to create env
+uname -r  				 	// show kernel version
+dmesg
+udevadm monitor  			// info 
+lspci 		 				// like ether 
+lsblk   					// list disks partitions
+lscpu 
+lsmem --summary
+free -m
+lsw 						// to show all
+ls -l /sbin/init  		  	// to check if systemd
+systemctl get-default
+df -hP     					// to see mounted media
+file /root/firefox.deb      // to check file type
+opt    						// is the directory to install 3rd party apps
+yum install  				//  yum help
+sudo yum provides tcpdump
+
+apt   location 				//  etc/apt/sources.list
+du -lh   file  				//  print file size
+
+tar -tf test.tar file1 file2 file3   		//  to initiate archive
+tar -xzf filename.tar.gz -C /path/to/directory     	 	// ****   extract from tar
+
+locate city.txt   			// to find file  it needs updatedb
+grep -r     				// to search recusively within file
+grep -v     				// print lines that don't match
+grep -ir "DATABASES = {"	//  ***  search inside files recursively
+
+
+
+tee or tee -a    			// can be used instead of > and >> while seeing the output
+2>      							 			//  ****  to write the ouput to a file
+
+
+useradd micheal
+id micheal 
+grep -i micheal /etc/passwd
+who   											// who is logged in now
+last    										// last logins
+root should be set as nologin
+
+useradd bob
+sudo passwd bob
+whoami
+userdel bob
+groupadd -g 1011 dev
+/etc/shadow   									//  ***** contains the password
+sudo grep /etc/sudoers
+
+
+ls -la
+chown  -R bob  /HOME/user1
+chgrp  android
+sudo chown -R mercury /opt/caleston-code		// *** very imp to put absolute path
+
+
+cat /home/bob/.ssh/authorized_keys    			// to check stored public keys
+scp -pr /home/bob/media  devapp01:/root    		// to copy directory and preserve permissions
+sudo  netstat -ntlp | grep ssh   				// with sudo to see pid and prog name
+
+ssh-copy-id bob@devapp01   						//     to user bob ssh-ing to devapp01
+cp --dport 443 -j DROP
+
+
+netstat -an | grep  5432 						// *** to check random other port 
+
+crontab -e 
+crontab -l
+*/30  *  * * * /usr/local/bin/system-debugger.sh    	// step every 30 min
+
+ssh-copy-id
+
+
+hostname 					// to check hostname
+cat /etc/hosts  			// to check hosts
+cat /etc/nsswitch.conf    	//  to check dns order
+cat /etc/resolv.conf     	// to check the ip of dns and dns configuration
+nslookup  					//  query hostname from dns but not from /etc
+dig     					// for more details
+
+ip link r 					// to see interfaces on the hosts
+ip addr add 				//  
+route       				// display kernel ip routing table
+ip route    				// to check default gateway 
+sudo ip route add 172.16.239.0/24 via 172.16.238.10  //  **we add route from the to containers to the jump host
+/etc/network/interfaces   	// to make them persistent 
+telnet devapp01-web 80   	// to check if port is reachable
+ping devapp01-web   
+netstat -an | grep 80 | grep -i LISTEN   
+
+
+
+ls -l /dev/ | grep "^b"   	// to check block storage 2nd method 
+gdisk /dev/sdb    			// to setup gpt on sdb disk
+sudo fdisk -l   			// to check for partitions
+gdisk -l       				// to check partitions also
+
+mkfs.ext4 /dev/sdb1  		// to make ext4 disk format
+mkdir /mnt/ext4     		// to create dir in order to mount disk to 
+mount /dev/sdb1 /mnt/ext4  	// to mount the hdd partition
+df -hP  					// to check mounts
+sudo blkid /dev/vdc         // to check filesystem type
+cat /etc/fstab				// to check mounts or add mounts 
+echo "/dev/sdb1 /mnt/ext4 ext4 rw 0 0" >> /etc/fstab 		// to setup mounts permanently
+
+
+
+*** lvm group physical volume in logical groups
+
+apt-get install lvm2   				// to install lvm package
+pvcreate /dev/sdb 					// to create pv
+vgcreate caleston_vg /dev/sdb 		// to create vg
+pvdisplay							//
+vgdisplay
+lvcreate
+lvs 
+sudo lvresize -L +500M -n /dev/mapper/caleston_vg-data
+sudo resize2fs /dev/mapper/caleston_vg-data
+
+
+*** systemd
+
+/etc/systemd/system
+sudo systemctl start project-mercury.service
+systemctl status
+systemctl stop
+unit after    						// check sreenshot **** to run after another srevice
+systemctl daemon-reload				// to load updates in the service
+systemctl enable    				// to make it boot at load
+sudo systemctl enable --now mercury.service
+systemctl edit kdj.service --full 	// to edit directly  *** --full
+systemctl get-default				// ** to check default
+systemctl list-units --all 			// *** to list all loaded units
+journalctl -u docker.service		// *** to check a certain service logs ***
+
+netstat -tuplen
+
+sudo sed -i 's/8080/9090/g' apache-tomcat-8.5.53/conf/server.xml  // ****  to replace all occurrences of the string "8080" with "9090" in the file apache-tomcat-8.5.53/conf/server.xml
+
+sudo sed -i 's/index.html/index.php/g' /etc/httpd/conf/httpd.conf   // sed exampleq
+
+nohup python app.py & 	 			//  *** to run app in background 
+
+[Unit]
+Description=Project Mercury Web Application
+
+[Service]
+User=mercury
+WorkingDirectory=/opt/caleston-code/mercuryProject/
+ExecStart=/usr/bin/python3 manage.py runserver 0.0.0.0:8000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+~                               
+
+
+chmod +x create-and-launch-rocket		//  ***** execute permissions to the script
+
+./create-and-launch-rocket or bash create-and-launch-rocket  // *** to run bash script (or sh)
+
+export PATH=$PATH:/home/micheal			// to add to path ***
+which command 							// to check command path ***
+cp $file_name ${file_name}_bkp			// append _bkp to the filename  ***
+sudo firewall-cmd --list-all			// if firewalld is installed *
+
+
+read -p "Enter mission name:" mission_name		// to input and add variable
+./print-capital.sh Nigeria Abuja	   			// nigeria here is $1 abuja is $2
+
+echo "The total price for items is $((A * B)) dollars " 	// example
+total_apples=`expr $baskets \* $apples_per_basket`			// *** use expr for math 
+
+average=$(echo "$sum / 3" | bc -l)		// *** 	The -l option is passed to bc, which 																	 	tells it to use the standard math library. This is needed
+												background because we are working with decimal numbers.
+
+if [ $rocket_status = "failed" ]
+if [ $1 -gt $2 ]						//   **  greater
+
+if [ -z $1 ]; then echo "No argument provided" else echo "The argument is: $1" // -z to check if empty **
+
+
+
+sudo yum install firewalld 
+sudo service firewalld start 
+sudo systemctl enable firewalld
+
+ sudo yum install mariadb-server
+ sudo vi /etc/my.cnf 
+ sudo service mariadb start
+ sudo systemctl enable mariadb 
+ sudo firewall-cmd --permanent --zone=public --add-port=3306/tcp
+ sudo firewall-cmd --reload
+
+ mysql
+ CREATE DATABASE ecomdb;
+ CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword';
+ GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost';
+ FLUSH PRIVILEGES;
+
+ mysql < db-load-script.sql
+
+ sudo yum install -y httpd php php-mysql 
+ sudo firewall-cmd --permanent --zone=public --add-port=80/tcp
+ sudo firewall-cmd --reload
+
+ sudo vi /etc/httpd/con/httpd.conf
+
+ sudo service httpd start
+ sudo systemctl enable htttpd 
+
+ sudo yum install-y git 
+ git clone https://github.com/<application>.git /var/www/html/
+
+http://localhost 			// *** always use to check page
+ sudo status httpd status       // *
+
+sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php  // *** to change localhost to ip
+sudo mysql < setup-db.sql   									  // to load mysql
+sudo mysql < db-load-script.sql
+
+cat > db-load-script.sql <<-EOF									  // **** to write inside .sql
+USE ecomdb;
+
+
+
+create ssh key
+ls -lah
+chmod 400 aws-demo.pem
+create security group
+create firewall rules allow incoming on port 22 and 80 from anywhere
+create ec2 as webserver
+ssh ubuntu@publickey -i aws-demo.pem
+sudo apt-get install -y apache2 
+
+sudo mkdir /var/www/myfirstapp
+sudo chown -R www-data:www-data /var/www/myfirstapp             // owner is now www-data instead of root
+touch /var/www/myfirstapp/index.html
+sudo mkdir /var/log/myfirstapp                                  // location for logs
+sudo chown -R www-data:www-data /var/log/myfirstapp  
+
+create /etc/apache2/sites-available/myfirstapp.conf             // expose the app on 80
+****
+<VirtualHost *:80>
+DocumentRoot /var/www/myfirstapp
+ErrorLog /var/log/myfirstapp/error.log
+CustomLog /var/log/myfirstapp/requests.log combined
+</VirtualHost>
+*****
+
+# Change the directory permissions
+sudo chmod -R 755 /var/www/mysecondapp
+# Create the index.html file and paste the code in it
+sudo nano /var/www/mysecondapp/index.html
+# Create the log directory
+sudo mkdir /var/log/mysecondapp
+# Change the ownership of the directory
+sudo chown -R www-data:www-data /var/log/mysecondapp/
+
+sudo nano /etc/apache2/sites-available/myfirstapp.conf
+<VirtualHost *:81>
+DocumentRoot /var/www/mysecondapp
+ErrorLog /var/log/mysecondapp/error.log
+CustomLog /var/log/mysecondapp/requests.log combined
+</VirtualHost>
+# Enable the site configuration
+sudo a2ensite mysecondapp.conf
+# Test the configuration
+sudo apache2ctl configtest
+# Restart apache
+sudo systemctl restart apache2
+
+sudo nano /etc/apache2/ports.conf
+Add the port: listen 81
+Restart apache: sudo service apache2 restart
+
+sudo nano /etc/apache2/sitesavailable/myfirstapp.conf
+
+ServerName myfirstapp.com
+
+sudo nano /etc/apache2/sitesavailable/mysecondapp.conf
+<VirtualHost *:80>
+ServerName mysecondapp.com
+
+ sudo service apache2 restart
+
+sudo nano /etc/hosts
+<SERVER IP> myfirstapp.com mysecondapp.com
+
+******
+
+volume mounts in /var/lib   (better be used)
+bind mounts in any directory like /opt/somedir
+***
+
+docker pull httpd:2.4-alpine 
+docker images
+docker run -d --name myfirstcontainer -p 80:80 httpd:2.4-alpine
+docker exec -it myfirstcontainer sh
+    cd htdocs
+    cat index.html
+    apk add nano
+docker rm -f myfirstcontainer
+docker ps -a
+
+docker commit myfirstcontainer
+docker images
+docker tag <imageid> custom-httpd:v1
+docker rm -f myfirstcontainer
+
+docker run -d --name mysecondcontainer -p 80:80 custom-httpd:v1
+
+push to ecr container registery:
+
+First, login to the ECR from the VM:
+aws ecr get-login-password --region <REGION ID> | docker login --username AWS \
+--password-stdin <ACCOUNT ID>.dkr.ecr.<REGION ID>.amazonaws.com
+
+# Tag the image with the correct repository name
+docker tag custom-httpd:v1 \
+<ACCOUNT ID>.dkr.ecr.<REGION ID>.amazonaws.com/custom-httpd:v1
+# Push the image
+docker push <ACCOUNT ID>.dkr.ecr.<REGION ID>.amazonaws.com/custom-httpd:v1
+
+
+# Delete all the containers from the server
+docker rm -f $(docker ps -a)
+# Delete all the images from the server
+docker rmi -f $(docker images)
+# List all the available images and containers (should return empty)
+docker images
+docker ps -a
+
+create a third container, but this time, reference the image located in the ECR:
+
+docker run -d --name mythirdcontainer -p 80:80 <ACCOUNT ID>.dkr.ecr.<REGION
+ID>.amazonaws.com/custom-httpd:v1
+
+
+Create a Dockerfile next to the index.html file, with the following content:
+FROM httpd:2.4-alpine
+COPY index.html /usr/local/apache2/htdocs/
+The resultant directory should look as follows
+
+docker build -f Dockerfile -t <ACCOUNT ID>.dkr.ecr.<REGION
+ID>.amazonaws.com/custom-httpd:v-Dockerfile .
+
+docker push <ACCOUNT ID>.dkr.ecr.<RGION
+ID>.amazonaws.com/custom-httpd:v-Dockerfile
+
+
+/usr/bin            //  ***** is the program files
+
+cat /var/run/falco.pid                          // *** to get pid of falco 
+kill -1 pid or
+kill -1 $(cat /var/run/falco.pid)               // *** to kill the falco automatically
+
+
+npm install -g xml2json-command
+xml2json myfile.xml > myfile.json
+jq -r '.people.person[] | .name["@text"]' myfile.json
+
+less -Ip string 44.json
+sudo tail -n 100 kube-apiserver.log
+
+find /etc/falco/ -name falco* -exec grep -i "A shell was spawned in a container" -C1 {} \; // to search inside **
+vim -c "set number" /etc/kubernetes/manifests/kube-apiserver.yaml
+
+mkdir -p            // *** -p to create parent if required
+
+cat /var/log/kubernetes/audit/audit.log | grep -i citadel | egrep -v 'get|watch|list|config' | jq  // ***
+watch -n 0.5 crictl ps                           // ** to refresh every 0.5s
+
+grep -I ^root /etc/passwd  // **
+^root is a regular expression pattern that matches lines beginning with the string "root"
+
+ps -ef | grep etcd              // ****
+
+cd -                            // to get back to previous dir
+control l                       // to clear screen
+
+*****
+
+mux new -s mysession
+"Ctrl+b " (press Ctrl and b together, then release, then press " (double quotes))
+
+Ctrl+b % (press Ctrl and b together, then release, then press %)
+Ctrl+b → (press Ctrl and b together, then release, then press the right arrow key)
+
+Ctrl+b c (press Ctrl and b together, then release, then press c)
+Ctrl+b ← (press Ctrl and b together, then release, then press the left arrow key)
+Ctrl+b c (press Ctrl and b together, then release, then press c)
+Ctrl+b ↓ (press Ctrl and b together, then release, then press the down arrow key)
+Ctrl+b c (press Ctrl and b together, then release, then press c)
+
+*****
+
+docker exec app1 ps aux                                         // display all running process
+    a: It displays the processes of all users, including those that do not own a terminal.
+    u: It displays detailed information about each process, including the user who started the process, the amount of system resources the process is consuming, and the command line that started the process.
+    x: It displays the processes that do not have a controlling terminal.
+
+grep -ri "shell in"                                 // **** to grep inside files in directory
+
+********
+
+FILE=/ks/wait-init.sh; while ! test -f ${FILE}; do clear; sleep 0.1; done; bash ${FILE}
+
+    FILE=/ks/wait-init.sh;: Assigns the path /ks/wait-init.sh to the variable FILE.
+
+    while ! test -f ${FILE}; do clear; sleep 0.1; done;: This is a while loop that checks if the file specified by ${FILE} exists. The loop continues until the file exists. Within the loop:
+        ! test -f ${FILE}: Checks if the file ${FILE} does not exist (-f option checks if it is a regular file).
+        clear;: Clears the terminal screen.
+        sleep 0.1;: Pauses the execution for 0.1 seconds to avoid excessive resource usage.
+
+    bash ${FILE}: Executes the file ${FILE} using the bash command.
+
+In summary, this command waits for the file /ks/wait-init.sh to exist and then executes it using bash. It clears the screen while waiting and introduces a small delay between checks to prevent resource usage spikes.
+
+
+******
+    envFrom: 
+    - secretRef:
+        name: test-secret
+      env:
+        - name: SEC_A1
+          valueFrom:
+            secretKeyRef:
+              name: sec-a1
+              key: user
+
+Both snippets involve accessing secrets in Kubernetes, but they are used in slightly different ways. The first snippet uses envFrom to inject all the environment variables from the specified secret, while the second snippet fetches a specific value from the secret and assigns it to an individual environment variable. The choice between the two approaches depends on the specific requirements and design of the Kubernetes resource being defined.
+
+The specific key name (user) mentioned in the solution is arbitrary and based on the assumption that the sec-a1 Secret contains a key named user that holds the desired value for SEC_A1
+********
+
+  serviceAccountName: custom
+  automountServiceAccountToken: false
+
+To verify that the token hasn't been mounted run the following commands:
+
+kubectl -n one exec -it pod-one -- mount | grep serviceaccount
+
+kubectl -n one exec -it pod-one -- cat /var/run/secrets/kubernetes.io/serviceaccount/token    // *****
+
+automountServiceAccountToken: false  // also in service account does the same thing but above metadata **
+
+********
+
+lsof -i :1234    // **** 1234  is the port 
+
+##########
+
+chown root:root /etc/crontab 
+chmod og-rwx /etc/crontab 
+ls -l /etc/crontab
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

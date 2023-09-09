@@ -1,0 +1,224 @@
+//// Goland ****
+g + control h to insert in multiple line
+control a to increment number
+control x to decrement number
+control v to enter the visual block
+then use r#  to comment
+vim -c "set number" /etc/kubernetes/manifests/kube-apiserver.yaml
+
+click options r to refractor rename
+options return to reractor errors
+option h for next highlighted error word
+option g for the previous one 
+command shift A for actions
+option shift to move current line up or down
+option b to select a whole block
+option down to lower the selection
+command / to comment															// **
+fn F1 to see the documentation										     		// ***	
+control shift c to convert json to go struct
+control space for completion suggestions (and twice to enter function)		    // ***
+control shift space for smart completion										// ***
+command option M to extract to a new function
+control I to implement methods
+shift twice to search all
+
+O insert above one line 
+f to jump forward to char  then use ;  to go the the next one ***
+t jump before char   then use ,  to go the the next one before ***
+_ to go to the beginning 
+0 to go to the beginning char
+d_ to delete to the beginning        ****
+d$ delete from cursor to the end     ****
+F to jump backward to a word
+d$ delete from cursor to the end							***
+df char do delete until the char (same for yank)  ***		***
+I  to insert in the beginning 						****
+A  to insert after 									****
+a insert after 
+d) delete to end of page
+^r to run in jetbrains
+
+
+
+ctrl o jump back 
+{} for jumping
+; to jump forward to same char
+, to jump back to same char
+VD visually delete
+s insert instead
+to indent the current line
+==
+To indent the all the lines below the current line
+=G
+To indent n lines below the current line
+n==
+For example, to indent 4 lines below the current line
+4==
+To indent a block of code, go to one of the braces and use command
+=%
+
+:%s/old_word/new_word/g .
+:%s/item/items
+
+//navigation
+h b B ^ 0 	
+					h-previous character; b-pervious work; B-pervious work and skip punctuation; ^-first non-blank character; 0-begining of line;
+l e w E W $ 	
+					l-next character; e-end of word; w-begining of next word; E-end of Word; W-begining of next WORD; $-end of line
+
+k Ctrl+u Ctrl+b gg 	k-up 1 line; Ctrl+u-up 1/2 page; Ctrl+b-up 1 page; gg-first line;
+
+j Ctrl+d Ctrl+f G 	j-down 1 line; Ctrl+d-down 1/2 page; Ctrl+f-down 1 page; G-last line;
+
+j Ctrl+d Ctrl+f G 	j-down 1 line; Ctrl+d-down 1/2 page; Ctrl+f-down 1 page; G-last line;
+
+ngg 				Goto line n
+
+Shift + * 			jump to next word matching cursor (case insensitive)
+Shift + # 			jump to previous word matching cursor
+Shift + H 			move to high (header) part of screen
+Shift + M 			move to middle of screen
+
+zz 					center screen on cursor
+zt 					allgn top of screen on cursor
+zb 					allgn top of center screen on cursor
+
+Shift + L 			move to lower part of screen
+Shift + } 			Go next paragraph empty space
+Shift + { 			Go previous paragraph empty space
+Shift + % 			Jump to open/close (), {}, or []
+
+// bookmark
+m [a-z0-9] 			(book)mark current cursor position with register (any key [a-z0-9])
+‘ [a-z0-9] 			Return to marked position [a-z0-9] (first non-blank character in line)
+Ctrl + + g 			Find All instances
+` [a-z0-9] 			jump to line and column of mark
+Ctrl+F2 			Toggle Bookmark (with indicator)
+F2 					Jump to Next bookmark
+Shift+F2 			Jump to Previous bookmark
+Shift+Ctrl+F2 		Clear all bookmarks
+
+// insert
+s 					delete character under cursor
+i 					Insert infront cursor
+a 					Append after cursor
+I 					Insert infront of line (tip: left shift indicates direction)
+A 					Append after line end (tip: right shift indicates direction)
+o 					Open newline below
+O 					Open newline above
+c 					Change/cut (i.e. cw = deletes word)
+caw 				Change/cut all word
+cc 					Change/cut entire line
+
+ci” 				
+					Change inner quote content (can be anywhere before for quotes, but has to be within for parenthses)
+
+// Selecting
+v 					switch into visual mode
+V 					selects line (goes into visual mode)
+vt, 				select until the comma
+vf, 				select until with the comma
+Vngg 				select current line up to line number n
+Vnj 				select current + down n lines
+Alt + F3 			select all under cursor
+
+
+//Undo Redo
+u 					undo
+Shift + U 			undo all changes to current line
+Ctrl + r 			redo
+. 					repeat last action
+
+// finding
+fx 					find x and land on it (current line only)
+Fx 					Jump back on x (opposite of above, current line only)
+tx 					‘til x but land before it (current line only)
+Tx 					Jump back ‘til x (opposite of above, current line only)
+/ 					enter find
+* 					set find all word & find next
+n 					find next, alternatively using F3
+N 					find previous alternatively using Shift + F3
+/ 					enter find
+/ 					enter find
+
+:3,9s/oldstring.newstring/g s for substitude 	 
+%s/oldstring.newstring/g s for substitude s for substitude 	 
+%s/oldstring.newstring/gc s for substitude
+
+// delete copy past
+r 					replace single character
+x 					delete single character
+X 					delete previous single character
+d 					delete (cuts)  **
+dd 					delete (cuts) entire line  **
+D 					delete until the end of the line
+diw 				delete (& copy) entire word  **
+daw 				delete (& copy) entire word with trailing space **
+d3w 				delete (& copy) 3 words
+num dd 				deletes num lines
+dit 				delete inner tag content
+y 					yank (copy) selection  **
+yiw 				yank (copy) the current word  **
+yy 					yank entire line
+p 					paste after cursor
+P 					paste before cursor
+d num Enter 		deletes num lines from current position in line to current position
+
+y num p 			copies line num times
+“register y 		yank to register (use :reg to view register)
+“register p 		paste from register (use :reg to view register)
+“0 					default register. e.g. copy a line, delete(cut) a line, paste the copied line: yy pp “0p
+
+// format
+== 					auto-indent current line
+« 					indent to left
+» 					indent to right
+~ 					Changes the case of current character
+gu 					Changes the selection from upper to lower
+gU 					Changes the selection from lower to upeer
+
+
+// sublime general
+Ctrl + p 	Quick-open files by name
+Ctrl + ku 	uppercase
+Ctrl + kl 	lowercase
+Ctrl + kt 	hide (fold) all tag attributes
+Ctrl + k0 	expand all code
+Ctrl + k1 	collapse/fold all 1 tab indentations
+Ctrl + k2 	collapse/fold all 2 tab indentations
+Ctrl + kb 	toggle side bar
+Ctrl + kv 	paste from history
+Ctrl + kc 	scroll cursor to centre
+Ctrl + kc 	scroll cursor to centre
+
+Shift + Alt + 2 	Split view into two windows (groups)
+Ctrl + 2 	Jump to window 2
+Shift + Ctrl + 2 	Move file to group 2
+
+
+mux new -s mysession
+"Ctrl+b " (press Ctrl and b together, then release, then press " (double quotes))
+
+Ctrl+b % (press Ctrl and b together, then release, then press %)
+Ctrl+b → (press Ctrl and b together, then release, then press the right arrow key)
+
+Ctrl+b c (press Ctrl and b together, then release, then press c)
+Ctrl+b ← (press Ctrl and b together, then release, then press the left arrow key)
+Ctrl+b c (press Ctrl and b together, then release, then press c)
+Ctrl+b ↓ (press Ctrl and b together, then release, then press the down arrow key)
+Ctrl+b c (press Ctrl and b together, then release, then press c)%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
